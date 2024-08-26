@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: url('https://i.pinimg.com/originals/e4/fa/06/e4fa061200efe8e8b35955892e984e60.gif') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        #chat-container {
+            display: flex;
+            flex-direction: column;
+            width: 80%;
+            max-width: 800px;
+            height: 80vh;
+            border: 1px solid #ccc;
+            background-color: transparent;
+            padding: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background for messages */
+        }
+
+        #message-input {
+            width: calc(100% - 90px);
+            padding: 10px;
+            margin-right: 5px;
+        }
+
+        #send-message {
+            padding: 10px 20px;
+        }
+
+        .message {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="messages"></div>
+        <input type="text" id="message-input" placeholder="Type a message...">
+        <button id="send-message">Send</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBrcTz_2VcqxQlShpuAG3TITCXyLhkKPm0",
+            authDomain: "madoo-881af.firebaseapp.com",
+            databaseURL: "https://madoo-881af-default-rtdb.firebaseio.com",
+            projectId: "madoo-881af",
+            storageBucket: "madoo-881af.appspot.com",
+            messagingSenderId: "1085549920919",
+            appId: "1:1085549920919:web:9c982dfb36bc07e0e9dfd2",
+            measurementId: "G-2DKVPQNETL"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        const messagesRef = ref(database, 'messages');
+        const usersRef = ref(database, 'users'); // To store user colors
+
+        const username = localStorage.getItem('username');
+        const userColor = localStorage.getItem('userColor');
+
+        if (username && userColor) {
+            // Ensure user color is set in the database
+            update(ref(usersRef, username), { color: userColor });
+
+            document.getElementById('send-message').addEventListener('click', () => {
+                const message = document.getElementById('message-input').value;
+                if (message.trim() !== "") {
+                    push(messagesRef, {
+                        text: message,
+                        user: username,
+                        color: userColor,
+                        timestamp: Date.now()
+                    });
+                    document.getElementById('message-input').value = '';
+                }
+            });
+
+            onValue(messagesRef, (snapshot) => {
+                const messagesContainer = document.getElementById('messages');
+                messagesContainer.innerHTML = '';
+                snapshot.forEach((childSnapshot) => {
+                    const messageData = childSnapshot.val();
+                    const messageElement = document.createElement('div');
+                    messageElement.className = 'message';
+                    messageElement.innerHTML = `<span style="color: ${messageData.color}; font-weight: bold;">${messageData.user}:</span> ${messageData.text}`;
+                    messagesContainer.appendChild(messageElement);
+                });
+            });
+        } else {
+            ale
